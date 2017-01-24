@@ -6,15 +6,15 @@ $Script:AzureSubscriptionInfo = $null
 
 $Script:AzureLoginInfo = $null
 
-$Script:SubNames = $null
+$Script:SubscriptionNames = $null
 
 $Script:CurrentSubName = ""
 
 # helper functions. not exported.
-function new-SubscriptionParameter
+function createSubscriptionParameter
 {
     $parameterName = "Subscription"
-    $subNames = $Script:SubNames
+    $SubscriptionNames = $Script:SubscriptionNames
 
     # Create the attribute collection
     $attributeCollection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
@@ -26,7 +26,7 @@ function new-SubscriptionParameter
     $subAttribute.HelpMessage = "The name of the subscription to connect to"
 
     # Create the ValidateSetAttribute() block using the subscription names
-    $validateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute -ArgumentList ($subNames)
+    $validateSetAttribute = New-Object -TypeName System.Management.Automation.ValidateSetAttribute -ArgumentList ($SubscriptionNames)
 
 
     # Add both attributes to the collection
@@ -45,7 +45,7 @@ function new-SubscriptionParameter
     return $paramDictionary
 }
 
-function set-Prompt
+function setPrompt
 {
     try
     {
@@ -113,7 +113,7 @@ function Connect-AzureTools
     }
     catch
     {
-        throw
+        Write-Error -Message "There was a problem connecting to Azure - $($Error[0]). Cannot continue."
         return
     }
 
@@ -124,17 +124,17 @@ function Connect-AzureTools
 
     $Script:AzureSubscriptionInfo = Get-AzureRmSubscription
 
-    $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName
+    $Script:SubscriptionNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName
 
-    Write-Verbose -Message "$($Script:SubNames.Count) available subscriptions"
+    Write-Verbose -Message "$($Script:SubscriptionNames.Count) available subscriptions"
 
     $Script:AzureConnected = $true
 
-    Write-Verbose -Message "AzureTools module is ready for use"
-
     $Script:CurrentSubName = $Script:AzureLoginInfo.Context.Subscription.SubscriptionName
 
-    set-Prompt
+    setPrompt
+
+    Write-Verbose -Message "AzureTools module is ready for use"
 }
 
 function Get-AzureActiveSubscription
@@ -180,7 +180,7 @@ function Get-AzureAvailableSubscriptions
         {
             $Script:AzureSubscriptionInfo = Get-AzureRmSubscription -ErrorAction Stop
 
-            $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName -ErrorAction Stop
+            $Script:SubscriptionNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName -ErrorAction Stop
         }
         catch
         {
@@ -206,7 +206,7 @@ function Select-AzureActiveSubscription
     Param()
     DynamicParam 
     {
-        return (new-SubscriptionParameter)
+        return (createSubscriptionParameter)
     }
 
     Begin
