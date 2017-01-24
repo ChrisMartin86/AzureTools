@@ -11,7 +11,7 @@ $Script:SubNames = $null
 $Script:CurrentSubName = ""
 
 # helper functions. not exported.
-function get-SubscriptionParameter
+function new-SubscriptionParameter
 {
     $parameterName = "Subscription"
     $subNames = $Script:SubNames
@@ -206,7 +206,7 @@ function Select-AzureActiveSubscription
     Param()
     DynamicParam 
     {
-        return (get-SubscriptionParameter)
+        return (new-SubscriptionParameter)
     }
 
     Begin
