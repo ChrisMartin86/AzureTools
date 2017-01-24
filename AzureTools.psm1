@@ -6,7 +6,7 @@ $Script:AzureSubscriptionInfo = $null
 
 $Script:AzureLoginInfo = $null
 
-$Script:SubNames = @()
+$Script:SubNames = $null
 
 $Script:CurrentSubName = ""
 
@@ -49,13 +49,13 @@ function set-Prompt
 {
     try
     {
-        $sb = {$currentDirPath = Get-Item -Path .\ | Select-Object -ExpandProperty FullName; "PS [Azure:\$($Script:CurrentSubName)] $currentDirPath> " }
+        $sb = { $currentDirPath = Get-Item -Path .\ | Select-Object -ExpandProperty FullName; "PS [Azure:\$($Script:CurrentSubName)] $currentDirPath> " }
         
         Set-Item -Path function:prompt -Value $sb
     }
     catch
     {
-        # swallow because this isn't really important
+        # Break to not cause more errors
     }
 }
 
@@ -146,9 +146,9 @@ function Get-AzureActiveSubscription
     .DESCRIPTION
     Return information about your currently active subscription
     #>
-    if ($Script:AzureLoginInfo -eq $null)
+    if ($Script:AzureConnected -ne $true)
     {
-        Write-Warning -Message "Command completed successfully, but you are not connected"
+        Write-Error -Exception (New-Object -TypeName System.Management.Automation.PSInvalidOperationException -ArgumentList ("AzureTools is not connected. Run Connect-AzureTools (not Login-AzureRmAccount) to connect."))
         return    
     }
     return $Script:AzureLoginInfo
@@ -167,6 +167,12 @@ function Get-AzureAvailableSubscriptions
     Use this flag to indicate you want to refresh the subscription information stored in memory.
     #>
     Param([switch] $Update)
+
+    if ($Script:AzureConnected -ne $true)
+    {
+        Write-Error -Exception (New-Object -TypeName System.Management.Automation.PSInvalidOperationException -ArgumentList ("AzureTools is not connected. Run Connect-AzureTools (not Login-AzureRmAccount) to connect."))
+        return    
+    }
     
     if ($Update)
     {
@@ -213,11 +219,9 @@ function Select-AzureActiveSubscription
         }
         else
         {
-            Write-Error -Exception (New-Object -TypeName System.Management.Automation.PSInvalidOperationException -ArgumentList ("Run Connect-Azure to connect. If you connected using Login-AzureRmAccount, you will not be able to use this module."))
+            Write-Error -Exception (New-Object -TypeName System.Management.Automation.PSInvalidOperationException -ArgumentList ("AzureTools is not connected. Run Connect-AzureTools (not Login-AzureRmAccount) to connect."))
         }
-    }
-    
-    
+    }    
 }
 
 Export-ModuleMember -Function Connect-AzureTools,Get-AzureActiveSubscription,Get-AzureAvailableSubscriptions,Select-AzureActiveSubscription
