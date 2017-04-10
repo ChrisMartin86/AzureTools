@@ -13,7 +13,7 @@ $Script:SubNames += ""
 $Script:CurrentSubName = ""
 
 # helper functions. not exported.
-function get-SubscriptionParameter
+function new-SubscriptionParameter
 {
     $parameterName = "Subscription"
 
@@ -60,18 +60,18 @@ function set-Prompt
     }
 }
 
-function set-DateToMidnight
+function set-DateFormat
 {
-    Param([DateTime] $Date)
+    Param([DateTime] $Date, [string] $Granularity)
 
-    Get-Date -Year $Date.Year -Month $date.Month -Day $date.Day -Hour 0 -Minute 0 -Second 0 -Millisecond 0
-}
-
-function set-DateToEvenHour
-{
-    Param([DateTime] $Date)
-
-    Get-Date -Year $Date.Year -Month $date.Month -Day $date.Day -Hour $date.Hour -Minute 0 -Second 0 -Millisecond 0
+    if ($Granularity -eq "Daily")
+    {
+        Get-Date -Year $Date.Year -Month $date.Month -Day $date.Day -Hour 0 -Minute 0 -Second 0 -Millisecond 0
+    }
+    else
+    {
+        Get-Date -Year $Date.Year -Month $date.Month -Day $date.Day -Hour $date.Hour -Minute 0 -Second 0 -Millisecond 0
+    }
 }
 
 
@@ -183,7 +183,7 @@ function Get-AzureAvailableSubscriptions
     Get all subscriptions available to you currently stored in memory. Use -Update to update this information from Azure
 
     .PARAMETER Update
-    Use this flag to indicate you want to refresh the subscription information stored in memory.
+    Use this switch to indicate you want to refresh the subscription information stored in memory.
 
     .OUTPUTS
     A list of all available subscriptions
@@ -224,7 +224,7 @@ function Select-AzureActiveSubscription
     Param()
     DynamicParam 
     {
-        return (get-SubscriptionParameter)
+        return (new-SubscriptionParameter)
     }
 
     Begin
@@ -428,16 +428,8 @@ function Get-AzureAPIResourceUsageAggregates
 
     $infoUrl = "https://management.azure.com/subscriptions/$($SubscriptionId)/providers/Microsoft.Commerce/UsageAggregates"
 
-    if ($AggregationGranularity -eq "Daily")
-    {
-        $StartDate = set-DateToMidnight -Date $StartDate
-        $EndDate = set-DateToMidnight -Date $EndDate
-    }
-    else
-    {
-        $StartDate = set-DateToEvenHour -Date $StartDate
-        $EndDate = set-DateToEvenHour -Date $EndDate    
-    }
+    $StartDate = set-DateFormat -Date $StartDate -Granularity $AggregationGranularity
+    $EndDate = set-DateFormat -Date $EndDate -Granularity $AggregationGranularity
 
     $body = @{
         "api-version" = $ApiVersion
