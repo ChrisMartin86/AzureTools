@@ -135,12 +135,12 @@ function Connect-AzureTools
 
     if ("" -eq $ActiveSubscription)
     {
-        Write-Warning -Message "You are connected to the $($Script:AzureLoginInfo.Context.Subscription.SubscriptionName) subscription."
+        Write-Warning -Message "You are connected to the $($Script:AzureLoginInfo.Context.Subscription.Name) subscription."
     }
 
-    $Script:AzureSubscriptionInfo = Get-AzureRmSubscription
+    $Script:AzureSubscriptionInfo = Get-AzureRmSubscription -WarningAction SilentlyContinue
 
-    $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName
+    $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty Name
 
     Write-Verbose -Message "$($Script:SubNames.Count) available subscriptions"
 
@@ -148,7 +148,7 @@ function Connect-AzureTools
 
     Write-Verbose -Message "AzureTools module is ready for use"
 
-    $Script:CurrentSubName = $Script:AzureLoginInfo.Context.Subscription.SubscriptionName
+    $Script:CurrentSubName = $Script:AzureLoginInfo.Context.Subscription.Name
 
     set-Prompt
 }
@@ -194,9 +194,9 @@ function Get-AzureAvailableSubscriptions
     {
         try
         {
-            $Script:AzureSubscriptionInfo = Get-AzureRmSubscription -ErrorAction Stop
+            $Script:AzureSubscriptionInfo = Get-AzureRmSubscription -ErrorAction Stop -WarningAction SilentlyContinue
 
-            $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty SubscriptionName -ErrorAction Stop
+            $Script:SubNames = $Script:AzureSubscriptionInfo | Select-Object -ExpandProperty Name -ErrorAction Stop
         }
         catch
         {
